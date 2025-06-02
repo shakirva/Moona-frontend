@@ -1,8 +1,7 @@
 // src/components/Sidebar.jsx
 import { Link, useLocation } from 'react-router-dom';
 import { Nav } from 'react-bootstrap';
-import { FaTachometerAlt, FaUsers, FaCoins, FaUserShield, FaBell } from 'react-icons/fa'; // Add FaBell
-import { FaTachometerAlt, FaUsers, FaCoins, FaUserShield, FaBullhorn } from 'react-icons/fa';
+import { FaTachometerAlt, FaUsers, FaCoins, FaUserShield, FaBullhorn, FaBell } from 'react-icons/fa';
 
 
 export default function Sidebar() {

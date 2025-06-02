@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+ const BASE_URL = process.env.REACT_APP_API_URL;
+
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post('http://localhost:5000/api/internal-users/login', { email, password });
-      localStorage.setItem('adminToken', res.data.token);
-      window.location.href = '/dashboard';
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
-    }
-  };
+
+const handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await axios.post(`${BASE_URL}/api/login`, { email, password });
+    localStorage.setItem('adminToken', res.data.token);
+    window.location.href = '/dashboard';
+  } catch (err) {
+    setError(err.response?.data?.message || 'Login failed');
+  }
+};
 
   return (
     <div className="container mt-5">

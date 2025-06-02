@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/api/admin';
+const API_BASE = 'http://localhost:5001/api/internal-users';
 
 export const login = async (email, password) => {
   return await axios.post(`${API_BASE}/login`, { email, password });
