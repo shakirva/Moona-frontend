@@ -20,7 +20,7 @@ export default function Dashboard() {
         <Col md={4}><Card style={{ ...cardStyle, background: 'linear-gradient(135deg, #c471f5, #fa71cd)' }}><Card.Body className="d-flex justify-content-between align-items-center"><div><Card.Title>Pending Requests</Card.Title><Card.Text className="fs-3 fw-semibold">6</Card.Text></div><FaRegClock size={36} /></Card.Body></Card></Col>
       </Row>
 
-      <Card className="mt-5 shadow-sm border-0 rounded-4">
+      {/* <Card className="mt-5 shadow-sm border-0 rounded-4">
         <Card.Header className="bg-light fw-bold fs-5">Recent Activity</Card.Header>
         <Card.Body>
           <ul className="mb-0 ps-3">
@@ -30,7 +30,7 @@ export default function Dashboard() {
             <li>📝 Admin <strong>Priya</strong> updated internal user roles – <small className="text-muted">15m ago</small></li>
           </ul>
         </Card.Body>
-      </Card>
+      </Card> */}
     </Container>
   );
 }
