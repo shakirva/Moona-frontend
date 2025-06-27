@@ -26,7 +26,7 @@ export default function Promotions() {
       const { data } = await axios.post('/api/admin/send-promotion', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setSuccess(data.message);
+      setSuccess(data.message || 'Promotion sent successfully');
       setImage(null);
       setTitle('');
       setBody('');
@@ -39,24 +39,27 @@ export default function Promotions() {
 
   return (
     <Card className="p-4 shadow-sm">
-      <h3 className="mb-4 text-primary">Send Promotion</h3>
+      <h3 className="mb-4 text-primary">📣 Send Promotion</h3>
 
       {success && <Alert variant="success">{success}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
 
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
-          <Form.Label>Image</Form.Label>
+          <Form.Label>Promotion Image</Form.Label>
           <Form.Control type="file" onChange={(e) => setImage(e.target.files[0])} required />
         </Form.Group>
+
         <Form.Group className="mb-3">
           <Form.Label>Title</Form.Label>
           <Form.Control type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
         </Form.Group>
+
         <Form.Group className="mb-3">
-          <Form.Label>Body</Form.Label>
+          <Form.Label>Description</Form.Label>
           <Form.Control as="textarea" rows={3} value={body} onChange={(e) => setBody(e.target.value)} required />
         </Form.Group>
+
         <Button type="submit" variant="primary" disabled={loading}>
           {loading ? <Spinner animation="border" size="sm" /> : 'Send Promotion'}
         </Button>
