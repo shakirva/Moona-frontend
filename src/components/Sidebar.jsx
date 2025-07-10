@@ -17,6 +17,7 @@ export default function Sidebar() {
   const navItems = [
     { to: '/', label: 'Dashboard', icon: <FaTachometerAlt /> },
     { to: '/users', label: 'Users', icon: <FaUsers /> },
+    { to: '/orders', label: 'Orders', icon: <FaTachometerAlt /> }, // ✅ Added Orders here
     { to: '/coins-history', label: 'Points History', icon: <FaCoins /> },
     { to: '/internal-users', label: 'Internal Users', icon: <FaUserShield /> },
     { to: '/promotions', label: 'Promotions', icon: <FaBullhorn /> },

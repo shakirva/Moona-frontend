@@ -13,6 +13,7 @@ import PointsRules from './pages/Settings/PointsRules';
 import GeneralSettings from './pages/Settings/GeneralSettings'; // ⬅️ Add this
 import DeliveryLocations from './pages/Settings/DeliveryLocations';
 import Coupons from './pages/Coupons';
+import Orders from './pages/Orders';
 
 
 
@@ -42,6 +43,8 @@ function App() {
 <Route path="/settings/general" element={<GeneralSettings />} />
 <Route path="/settings/delivery-locations" element={<DeliveryLocations />} />
 <Route path="/coupons" element={<Coupons />} />
+<Route path="/orders" element={<Orders />} />
+
 
 
 
