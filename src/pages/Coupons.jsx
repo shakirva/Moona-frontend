@@ -53,6 +53,23 @@ const Coupons = () => {
     }
   };
 
+const handleDelete = async (id) => {
+  if (!window.confirm('Are you sure you want to delete this coupon?')) return;
+
+  try {
+    const res = await axios.delete(`${baseUrl}/api/coupons/${id}`);
+    if (res.data.success) {
+      // Remove coupon from UI list
+      setCoupons((prev) => prev.filter((c) => c.id !== id));
+    } else {
+      console.error('Delete failed:', res.data.message);
+    }
+  } catch (err) {
+    console.error('Error deleting coupon:', err);
+  }
+};
+
+
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -83,7 +100,13 @@ const Coupons = () => {
                 <td>{c.max_order_value}</td>
                 <td>{new Date(c.expiry_date).toLocaleDateString()}</td>
                 <td>
-                  <Button size="sm" variant="danger" disabled>Delete</Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => handleDelete(c.id)}
+                  >
+                    Delete
+                  </Button>
                 </td>
               </tr>
             ))

@@ -1,102 +1,204 @@
 // src/pages/CoinsHistory.jsx
 import React, { useEffect, useState } from 'react';
-import { Table, Modal, Button, Spinner } from 'react-bootstrap';
+import {
+  Table, Modal, Button, Spinner, Alert, Form, InputGroup, Row, Col, Pagination
+} from 'react-bootstrap';
 import axios from 'axios';
 
 const BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+const ITEMS_PER_PAGE = 10;
 
 export default function CoinsHistory() {
-  const [history, setHistory] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [show, setShow] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Load coin history on mount
+  // Fetch orders from Shopify
   useEffect(() => {
-    axios.get(`${BASE}/api/wallet/coin-history`)
-      .then(res => setHistory(res.data))
-      .catch(console.error);
+    fetchOrders();
   }, []);
 
-  // Load order + wallet details
-  const clickOrder = (id) => {
-    setLoading(true);
-    setShow(true);
-    axios.get(`${BASE}/api/wallet/orders/${id}`)
-      .then(res => setSelected(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+  // Search & filter logic
+  useEffect(() => {
+    let data = [...orders];
+    if (searchTerm) {
+      data = data.filter(order =>
+        order.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.id.toString().includes(searchTerm) ||
+        (order.customer?.first_name + ' ' + order.customer?.last_name).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    if (statusFilter) {
+      data = data.filter(order => order.financial_status === statusFilter);
+    }
+    setFilteredOrders(data);
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, orders]);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get(`${BASE}/api/shopify/orders`);
+      setOrders(res.data.orders);
+    } catch (err) {
+      console.error('Failed to load Shopify orders:', err);
+      setError('Failed to load orders from Shopify.');
+    }
   };
+
+  const handleOrderClick = async (orderId) => {
+    setModalVisible(true);
+    setSelectedOrder(null);
+    setWallet(null);
+    setError('');
+    setLoading(true);
+
+    try {
+      const orderRes = await axios.get(`${BASE}/api/shopify/orders/${orderId}`);
+      setSelectedOrder(orderRes.data.order);
+
+      const walletRes = await axios.get(`${BASE}/api/wallet/orders/${orderId}`);
+      setWallet(walletRes.data.wallet);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load order details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
 
   return (
     <div className="container mt-4">
       <h3>🪙 Coin Transactions</h3>
+
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      {/* Search and Filter */}
+      <Row className="mb-3">
+        <Col md={6}>
+          <InputGroup>
+            <Form.Control
+              placeholder="Search by order ID, customer name, or order name"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </InputGroup>
+        </Col>
+        <Col md={4}>
+          <Form.Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="refunded">Refunded</option>
+            <option value="partially_paid">Partially Paid</option>
+          </Form.Select>
+        </Col>
+      </Row>
+
+      {/* Orders Table */}
       <Table striped bordered hover responsive>
         <thead>
           <tr>
             <th>Order ID</th>
-            <th>Coins</th>
-            <th>Type</th>
-            <th>Available</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Currency</th>
             <th>Created At</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {history.map(tx => (
-            <tr key={tx.id} onClick={() => clickOrder(tx.order_id)} style={{ cursor: 'pointer' }}>
-              <td>{tx.order_id}</td>
-              <td>{tx.coins}</td>
-              <td>{tx.type}</td>
-              <td>{tx.available_coins}</td>
-              <td>{new Date(tx.created_at).toLocaleString()}</td>
+          {paginatedOrders.map(order => (
+            <tr
+              key={order.id}
+              style={{ cursor: 'pointer' }}
+              onClick={() => handleOrderClick(order.id)}
+            >
+              <td>{order.id}</td>
+              <td>{order.customer?.first_name || ''} {order.customer?.last_name || ''}</td>
+              <td>{order.total_price}</td>
+              <td>{order.currency}</td>
+              <td>{new Date(order.created_at).toLocaleString()}</td>
+              <td>{order.financial_status}</td>
             </tr>
           ))}
         </tbody>
       </Table>
 
-      {/* Modal for Order Details */}
-      <Modal show={show} onHide={() => setShow(false)} size="lg" centered>
+      {/* Pagination */}
+      <Pagination>
+        {[...Array(totalPages)].map((_, index) => (
+          <Pagination.Item
+            key={index + 1}
+            active={index + 1 === currentPage}
+            onClick={() => setCurrentPage(index + 1)}
+          >
+            {index + 1}
+          </Pagination.Item>
+        ))}
+      </Pagination>
+
+      {/* Modal with Order & Wallet Info */}
+      <Modal show={modalVisible} onHide={() => setModalVisible(false)} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>Order & Wallet Details</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {loading ? (
             <div className="text-center"><Spinner animation="border" /></div>
-          ) : selected ? (
+          ) : selectedOrder ? (
             <>
               <h5>🛍️ Shopify Order</h5>
-              <p><strong>ID:</strong> {selected.order.id}</p>
-              <p><strong>Name:</strong> {selected.order.name}</p>
-              <p><strong>Total:</strong> {selected.order.total_price} {selected.order.currency}</p>
-              <p><strong>Created:</strong> {new Date(selected.order.created_at).toLocaleString()}</p>
+              <p><strong>Order ID:</strong> {selectedOrder.id}</p>
+              <p><strong>Name:</strong> {selectedOrder.name}</p>
+              <p><strong>Customer:</strong> {selectedOrder.customer?.first_name} {selectedOrder.customer?.last_name}</p>
+              <p><strong>Total:</strong> {selectedOrder.total_price} {selectedOrder.currency}</p>
+              <p><strong>Status:</strong> {selectedOrder.financial_status}</p>
+              <p><strong>Created At:</strong> {new Date(selectedOrder.created_at).toLocaleString()}</p>
 
               <h6>🧾 Items:</h6>
               <ul>
-                {selected.order.line_items.map((item, index) => (
+                {selectedOrder.line_items.map((item, index) => (
                   <li key={index}>
-                    {item.quantity}× {item.title} (@{item.price})
+                    {item.quantity}× {item.title} @ {item.price}
                   </li>
                 ))}
               </ul>
 
-              <h5>💰 Wallet</h5>
-              {selected.wallet ? (
+              <h5>💰 Wallet Transaction</h5>
+              {wallet ? (
                 <>
-                  <p><strong>Coins:</strong> {selected.wallet.coins}</p>
-                  <p><strong>Type:</strong> {selected.wallet.type}</p>
-                  <p><strong>Available:</strong> {selected.wallet.available_coins}</p>
-                  <p><strong>At:</strong> {new Date(selected.wallet.created_at).toLocaleString()}</p>
+                  <p><strong>Coins:</strong> {wallet.coins}</p>
+                  <p><strong>Type:</strong> {wallet.type}</p>
+                  <p><strong>Available Coins:</strong> {wallet.available_coins}</p>
+                  <p><strong>Created At:</strong> {new Date(wallet.created_at).toLocaleString()}</p>
                 </>
               ) : (
-                <p>No wallet transaction found for this order.</p>
+                <p>No wallet record found for this order.</p>
               )}
             </>
           ) : (
-            <p className="text-danger">Error loading order details.</p>
+            <p className="text-danger">No data to show.</p>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShow(false)}>Close</Button>
+          <Button variant="secondary" onClick={() => setModalVisible(false)}>Close</Button>
         </Modal.Footer>
       </Modal>
     </div>

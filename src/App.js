@@ -14,7 +14,7 @@ import GeneralSettings from './pages/Settings/GeneralSettings'; // ⬅️ Add th
 import DeliveryLocations from './pages/Settings/DeliveryLocations';
 import Coupons from './pages/Coupons';
 import Orders from './pages/Orders';
-
+import UserDetails from './pages/UserDetails'; // ⬅️ Add this
 
 
 function PrivateRoute({ children }) {
@@ -44,6 +44,8 @@ function App() {
 <Route path="/settings/delivery-locations" element={<DeliveryLocations />} />
 <Route path="/coupons" element={<Coupons />} />
 <Route path="/orders" element={<Orders />} />
+<Route path="/admin/users/:shopifyId" element={<UserDetails />} />
+
 
 
 

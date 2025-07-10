@@ -1,24 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Container, Table, Spinner, Alert, Button } from 'react-bootstrap';
+import {
+  Container, Table, Spinner, Alert,
+  Button, Form, Row, Col
+} from 'react-bootstrap';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pageInfo, setPageInfo] = useState({});
+  const [searchParams, setSearchParams] = useState({
+    name: '',
+    email: '',
+    financial_status: '',
+    fulfillment_status: ''
+  });
 
   const fetchOrders = async (direction = 'next') => {
     try {
       setLoading(true);
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders`, {
-        params: {
-          limit: 10,
-          ...(direction === 'next' && pageInfo.next ? { page_info: pageInfo.next } : {}),
-          ...(direction === 'prev' && pageInfo.prev ? { page_info: pageInfo.prev } : {}),
-        }
-      });
+      const params = {
+        limit: 10,
+        ...searchParams,
+        ...(direction === 'next' && pageInfo.next ? { page_info: pageInfo.next } : {}),
+        ...(direction === 'prev' && pageInfo.prev ? { page_info: pageInfo.prev } : {}),
+      };
 
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders`, { params });
       setOrders(res.data.orders || []);
 
       const linkHeader = res.headers.link;
@@ -47,9 +56,43 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
+  const handleSearchChange = (e) => {
+    setSearchParams(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setPageInfo({});
+    fetchOrders();
+  };
+
   return (
     <Container className="mt-4">
       <h3 className="mb-4">Shopify Orders</h3>
+
+      <Form onSubmit={handleSearchSubmit} className="mb-3">
+        <Row>
+          <Col md={3}><Form.Control type="text" placeholder="Search by name" name="name" onChange={handleSearchChange} /></Col>
+          <Col md={3}><Form.Control type="text" placeholder="Search by email" name="email" onChange={handleSearchChange} /></Col>
+          <Col md={3}>
+            <Form.Select name="financial_status" onChange={handleSearchChange}>
+              <option value="">Financial Status</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="refunded">Refunded</option>
+            </Form.Select>
+          </Col>
+          <Col md={3}>
+            <Form.Select name="fulfillment_status" onChange={handleSearchChange}>
+              <option value="">Fulfillment Status</option>
+              <option value="fulfilled">Fulfilled</option>
+              <option value="unfulfilled">Unfulfilled</option>
+              <option value="partial">Partial</option>
+            </Form.Select>
+          </Col>
+        </Row>
+        <Button className="mt-2" type="submit">Apply Filters</Button>
+      </Form>
 
       {loading && <Spinner animation="border" />}
 
