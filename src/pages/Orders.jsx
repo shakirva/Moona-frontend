@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Alert, Button, Col, Container, Form, Row, Spinner, Table } from 'react-bootstrap';
+import { capitalizeFirstLetter } from '../utils/helpers';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -68,7 +69,7 @@ const Orders = () => {
           <Col><Form.Control type="text" placeholder="Search by email" name="email" onChange={handleSearchChange} /></Col>
           <Col>
             <Form.Select name="financial_status" onChange={handleSearchChange}>
-              <option value="">Financial Status</option>
+              <option value="">All</option>
               <option value="paid">Paid</option>
               <option value="pending">Pending</option>
               <option value="refunded">Refunded</option>
@@ -76,7 +77,7 @@ const Orders = () => {
           </Col>
           <Col>
             <Form.Select name="fulfillment_status" onChange={handleSearchChange}>
-              <option value="">Fulfillment Status</option>
+              <option value="">All</option>
               <option value="fulfilled">Fulfilled</option>
               <option value="unfulfilled">Unfulfilled</option>
               <option value="partial">Partial</option>
@@ -100,7 +101,8 @@ const Orders = () => {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Total Price</th>
-                <th>Status</th>
+                <th>Payment Status</th>
+                <th>Ship Status</th>
                 <th>Created</th>
               </tr>
             </thead>
@@ -112,7 +114,12 @@ const Orders = () => {
                   <td>{order.customer?.first_name} {order.customer?.last_name}</td>
                   <td>{order.email}</td>
                   <td>{order.total_price} {order.currency}</td>
-                  <td>{order.fulfillment_status || 'Unfulfilled'}</td>
+                  <td>
+                    <span className={`badge rounded-pill ${order.financial_status === 'paid' ? 'text-bg-primary': 'text-bg-danger'}`}>
+                      {capitalizeFirstLetter(order.financial_status)}
+                    </span>
+                  </td>
+                  <td>{capitalizeFirstLetter(order.fulfillment_status)}</td>
                   <td>{new Date(order.created_at).toLocaleString()}</td>
                 </tr>
               ))}
