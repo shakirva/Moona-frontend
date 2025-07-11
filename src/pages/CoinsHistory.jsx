@@ -164,15 +164,29 @@ export default function CoinsHistory() {
             <div className="text-center"><Spinner animation="border" /></div>
           ) : selectedOrder ? (
             <>
-              <h5>🛍️ Shopify Order</h5>
-              <p><strong>Order ID:</strong> {selectedOrder.id}</p>
-              <p><strong>Name:</strong> {selectedOrder.name}</p>
-              <p><strong>Customer:</strong> {selectedOrder.customer?.first_name} {selectedOrder.customer?.last_name}</p>
-              <p><strong>Total:</strong> {selectedOrder.total_price} {selectedOrder.currency}</p>
-              <p><strong>Status:</strong> {selectedOrder.financial_status}</p>
-              <p><strong>Created At:</strong> {new Date(selectedOrder.created_at).toLocaleString()}</p>
+              <h6>🛍️ Shopify Order</h6>
+              <table class="table table-borderless">
+                <tr>
+                  <td><strong>Order ID:</strong></td>
+                  <td>{selectedOrder.id}</td>
+                  <td><strong>Name:</strong></td>
+                  <td>{selectedOrder.name}</td>
+                </tr>
+                <tr>
+                  <td><strong>Customer:</strong></td>
+                  <td>{selectedOrder.customer?.first_name} {selectedOrder.customer?.last_name}</td>
+                  <td><strong>Total:</strong></td>
+                  <td className="fw-bold">{selectedOrder.total_price} {selectedOrder.currency}</td>
+                </tr>
+                <tr>
+                  <td><strong>Status:</strong></td>
+                  <td><span className='badge rounded-pill text-bg-primary'>{selectedOrder.financial_status.toUpperCase()}</span></td>
+                  <td><strong>Created At:</strong></td>
+                  <td>{new Date(selectedOrder.created_at).toLocaleString()}</td>
+                </tr>
+              </table>
 
-              <h6>🧾 Items:</h6>
+              <h6>🧾 Items ({selectedOrder.line_items.length}):</h6>
               <ul>
                 {selectedOrder.line_items.map((item, index) => (
                   <li key={index}>
@@ -181,7 +195,7 @@ export default function CoinsHistory() {
                 ))}
               </ul>
 
-              <h5>💰 Wallet Transaction</h5>
+              <h6>💰 Wallet Transaction</h6>
               {wallet ? (
                 <>
                   <p><strong>Coins:</strong> {wallet.coins}</p>

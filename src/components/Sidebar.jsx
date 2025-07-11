@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Nav } from 'react-bootstrap';
 import {
   FaTachometerAlt, FaUsers, FaCoins, FaUserShield,
-  FaBullhorn, FaCogs, FaChevronDown, FaGift
+  FaBullhorn, FaCogs, FaChevronDown, FaGift, FaCubes
 } from 'react-icons/fa';
 import { useState } from 'react';
 
@@ -17,7 +17,7 @@ export default function Sidebar() {
   const navItems = [
     { to: '/', label: 'Dashboard', icon: <FaTachometerAlt /> },
     { to: '/users', label: 'Users', icon: <FaUsers /> },
-    { to: '/orders', label: 'Orders', icon: <FaTachometerAlt /> }, // ✅ Added Orders here
+    { to: '/orders', label: 'Orders', icon: <FaCubes /> }, // ✅ Added Orders here
     { to: '/coins-history', label: 'Points History', icon: <FaCoins /> },
     { to: '/internal-users', label: 'Internal Users', icon: <FaUserShield /> },
     { to: '/promotions', label: 'Promotions', icon: <FaBullhorn /> },
