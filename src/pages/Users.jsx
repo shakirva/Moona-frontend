@@ -7,13 +7,13 @@ import {
 
 const User = () => {
   const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [coinFilter, setCoinFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const usersPerPage = 10;
 
   const [selectedUser, setSelectedUser] = useState(null);
@@ -21,17 +21,22 @@ const User = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [searchTerm, coinFilter, users]);
+  }, [searchTerm, coinFilter, currentPage]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/user`);
-      setUsers(res.data);
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/user`, {
+        params: {
+          search: searchTerm,
+          filter: coinFilter,
+          page: currentPage,
+          limit: usersPerPage,
+        },
+      });
+
+      setUsers(res.data.users);
+      setTotalPages(res.data.pagination.totalPages || 1);
     } catch (err) {
       console.error('Error fetching users:', err);
       setError('Failed to load users.');
@@ -40,34 +45,9 @@ const User = () => {
     }
   };
 
-  const applyFilters = () => {
-    let filtered = users;
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        user =>
-          user.name?.toLowerCase().includes(term) ||
-          user.email?.toLowerCase().includes(term)
-      );
-    }
-
-    if (coinFilter === 'zero') {
-      filtered = filtered.filter(user => user.coins === 0);
-    } else if (coinFilter === 'positive') {
-      filtered = filtered.filter(user => user.coins > 0);
-    }
-
-    setFilteredUsers(filtered);
-    setCurrentPage(1);
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber !== currentPage) setCurrentPage(pageNumber);
   };
-
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-
-  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleViewUser = (user) => {
     setSelectedUser(user);
@@ -88,13 +68,22 @@ const User = () => {
         <Col md={6}>
           <Form.Control
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search by name, email or Shopify ID..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </Col>
         <Col md={3}>
-          <Form.Select value={coinFilter} onChange={(e) => setCoinFilter(e.target.value)}>
+          <Form.Select
+            value={coinFilter}
+            onChange={(e) => {
+              setCoinFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+          >
             <option value="all">All Coins</option>
             <option value="zero">0 Coins</option>
             <option value="positive">> 0 Coins</option>
@@ -127,31 +116,34 @@ const User = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentUsers.length > 0 ? (
-                  currentUsers.map((user, index) => (
+                {users.length > 0 ? (
+                  users.map((user, index) => (
                     <tr key={user.id}>
-                      <td>{indexOfFirstUser + index + 1}</td>
+                      <td>{(currentPage - 1) * usersPerPage + index + 1}</td>
                       <td>{user.shopify_id}</td>
                       <td>{user.name}</td>
                       <td>{user.email}</td>
                       <td>{user.coins}</td>
                       <td>QAR {parseFloat(user.shopify_total_spent).toFixed(2)}</td>
                       <td>{user.shopify_orders_count}</td>
-                      <td>{user.shopify_created_at ? new Date(user.shopify_created_at).toLocaleDateString() : ''}</td>
+                      <td>
+                        {user.shopify_created_at
+                          ? new Date(user.shopify_created_at).toLocaleDateString()
+                          : ''}
+                      </td>
                       <td>
                         {[user.address1, user.address2, user.city, user.province, user.zip, user.country]
                           .filter(Boolean)
                           .join(', ')}
                       </td>
                       <td>
-                       <Button
-  variant="primary"
-  size="sm"
-  href={`/admin/users/${user.shopify_id}`}
->
-  View
-</Button>
-
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          href={`/admin/users/${user.shopify_id}`}
+                        >
+                          View
+                        </Button>
                       </td>
                     </tr>
                   ))
@@ -198,7 +190,7 @@ const User = () => {
               <p><strong>Total Spent:</strong> QAR {parseFloat(selectedUser.shopify_total_spent).toFixed(2)}</p>
               <p><strong>Orders:</strong> {selectedUser.shopify_orders_count}</p>
               <p><strong>Created At:</strong> {selectedUser.shopify_created_at ? new Date(selectedUser.shopify_created_at).toLocaleDateString() : ''}</p>
-              <p><strong>Address:</strong><br /> 
+              <p><strong>Address:</strong><br />
                 {[selectedUser.address1, selectedUser.address2, selectedUser.city, selectedUser.province, selectedUser.zip, selectedUser.country]
                   .filter(Boolean)
                   .join(', ')}

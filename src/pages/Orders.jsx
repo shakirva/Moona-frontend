@@ -20,22 +20,18 @@ const Orders = () => {
     try {
       setLoading(true);
       if (direction) {
-        setPageInfo(prev => ({
-          ...prev,
-          current_type: direction
-        }));
+        setPageInfo(prev => ({ ...prev, current_type: direction }));
       }
 
       const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders`, {
-        params: { limit: 10, pageInfo: pageInfo, searchParams: searchParams }
+        params: { limit: 10, pageInfo, searchParams }
       });
 
-      // Set orders from the response
       setOrders(res.data.orders || []);
       setPageInfo(prev => ({
         ...prev,
         prev_link: res.data.prev_link || '',
-        next_link: res.data.next_link || '',
+        next_link: res.data.next_link || ''
       }));
     } catch (err) {
       console.error('Error fetching orders:', err);
@@ -59,17 +55,36 @@ const Orders = () => {
     fetchOrders();
   };
 
+  const getShipmentBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'confirmed':
+      case 'in_transit':
+      case 'in progress':
+        return 'text-bg-warning';
+      case 'delivered':
+        return 'text-bg-success';
+      case 'failure':
+      case 'cancelled':
+        return 'text-bg-danger';
+      case 'out_for_delivery':
+        return 'text-bg-info';
+      default:
+        return 'text-bg-secondary';
+    }
+  };
+
   return (
     <Container className="mt-4">
       <h3 className="mb-4">Shopify Orders</h3>
+
       <Form onSubmit={handleSearchSubmit} className="mb-3">
         <Row>
-          <Col><Form.Control type="text" placeholder="Search by Order Id" name="order_id" onChange={handleSearchChange} /></Col>
-          <Col><Form.Control type="text" placeholder="Search by name" name="name" onChange={handleSearchChange} /></Col>
-          <Col><Form.Control type="text" placeholder="Search by email" name="email" onChange={handleSearchChange} /></Col>
+          <Col><Form.Control type="text" placeholder="Search by Order ID" name="order_id" onChange={handleSearchChange} /></Col>
+          <Col><Form.Control type="text" placeholder="Search by Name" name="name" onChange={handleSearchChange} /></Col>
+          <Col><Form.Control type="text" placeholder="Search by Email" name="email" onChange={handleSearchChange} /></Col>
           <Col>
             <Form.Select name="financial_status" onChange={handleSearchChange}>
-              <option value="">All</option>
+              <option value="">Payment Status</option>
               <option value="paid">Paid</option>
               <option value="pending">Pending</option>
               <option value="refunded">Refunded</option>
@@ -77,17 +92,17 @@ const Orders = () => {
           </Col>
           <Col>
             <Form.Select name="fulfillment_status" onChange={handleSearchChange}>
-              <option value="">All</option>
+              <option value="">Fulfillment Status</option>
               <option value="fulfilled">Fulfilled</option>
               <option value="unfulfilled">Unfulfilled</option>
               <option value="partial">Partial</option>
             </Form.Select>
           </Col>
         </Row>
-        <Button className="mt-2" type="submit">Apply Filters</Button>
+        <Button className="mt-3" type="submit">Apply Filters</Button>
       </Form>
 
-      {loading && <Spinner animation="border" />}
+      {loading && <Spinner animation="border" variant="primary" />}
 
       {error && <Alert variant="danger">{error}</Alert>}
 
@@ -103,26 +118,53 @@ const Orders = () => {
                 <th>Total Price</th>
                 <th>Payment Status</th>
                 <th>Ship Status</th>
+                <th>Track</th>
                 <th>Created</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((order, index) => (
-                <tr key={order.id}>
-                  <td>{index + 1}</td>
-                  <td>{order.id}</td>
-                  <td>{order.customer?.first_name} {order.customer?.last_name}</td>
-                  <td>{order.email}</td>
-                  <td>{order.total_price} {order.currency}</td>
-                  <td>
-                    <span className={`badge rounded-pill ${order.financial_status === 'paid' ? 'text-bg-primary': 'text-bg-danger'}`}>
-                      {capitalizeFirstLetter(order.financial_status)}
-                    </span>
-                  </td>
-                  <td>{capitalizeFirstLetter(order.fulfillment_status)}</td>
-                  <td>{new Date(order.created_at).toLocaleString()}</td>
-                </tr>
-              ))}
+              {orders.map((order, index) => {
+                const fulfillment = order.fulfillments?.[0];
+                const trackingUrl = fulfillment?.tracking_url || fulfillment?.tracking_urls?.[0];
+                const shipmentStatusRaw = order.fulfillments?.length > 0
+                  ? fulfillment?.shipment_status
+                  : 'Not Shipped';
+
+                const shipmentStatus = capitalizeFirstLetter(shipmentStatusRaw || 'Not Shipped');
+                const shipmentClass = getShipmentBadgeClass(shipmentStatusRaw);
+
+                return (
+                  <tr key={order.id}>
+                    <td>{index + 1}</td>
+                    <td>{order.id}</td>
+                    <td>{order.customer?.first_name} {order.customer?.last_name}</td>
+                    <td>{order.email}</td>
+                    <td>{order.total_price} {order.currency}</td>
+                    <td>
+                      <span className={`badge rounded-pill ${order.financial_status === 'paid' ? 'text-bg-primary' : 'text-bg-danger'}`}>
+                        {capitalizeFirstLetter(order.financial_status)}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`badge rounded-pill ${shipmentClass}`}>
+                        {shipmentStatus}
+                      </span>
+                    </td>
+                    <td>
+                      {trackingUrl ? (
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => window.open(trackingUrl, '_blank')}
+                        >
+                          Track
+                        </Button>
+                      ) : '—'}
+                    </td>
+                    <td>{new Date(order.created_at).toLocaleString()}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </Table>
 

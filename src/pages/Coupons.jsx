@@ -7,6 +7,9 @@ const baseUrl = 'http://localhost:5001'; // Backend URL
 const Coupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState(null);
+
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -34,47 +37,68 @@ const Coupons = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const resetForm = () => {
+    setForm({
+      name: '',
+      description: '',
+      code: '',
+      min_order_value: '',
+      max_order_value: '',
+      offer_percentage: '',
+      expiry_date: '',
+    });
+    setIsEditMode(false);
+    setEditId(null);
+  };
+
   const handleSubmit = async () => {
     try {
-      await axios.post(`${baseUrl}/api/coupons`, form);
-      fetchCoupons(); // Refresh list
+      if (isEditMode) {
+        await axios.put(`${baseUrl}/api/coupons/${editId}`, form);
+      } else {
+        await axios.post(`${baseUrl}/api/coupons`, form);
+      }
+      fetchCoupons();
       setShowModal(false);
-      setForm({
-        name: '',
-        description: '',
-        code: '',
-        min_order_value: '',
-        max_order_value: '',
-        offer_percentage: '',
-        expiry_date: '',
-      });
+      resetForm();
     } catch (err) {
       console.error('Error saving coupon:', err);
     }
   };
 
-const handleDelete = async (id) => {
-  if (!window.confirm('Are you sure you want to delete this coupon?')) return;
-
-  try {
-    const res = await axios.delete(`${baseUrl}/api/coupons/${id}`);
-    if (res.data.success) {
-      // Remove coupon from UI list
-      setCoupons((prev) => prev.filter((c) => c.id !== id));
-    } else {
-      console.error('Delete failed:', res.data.message);
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this coupon?')) return;
+    try {
+      const res = await axios.delete(`${baseUrl}/api/coupons/${id}`);
+      if (res.data.success) {
+        setCoupons((prev) => prev.filter((c) => c.id !== id));
+      } else {
+        console.error('Delete failed:', res.data.message);
+      }
+    } catch (err) {
+      console.error('Error deleting coupon:', err);
     }
-  } catch (err) {
-    console.error('Error deleting coupon:', err);
-  }
-};
+  };
 
+  const handleEdit = (coupon) => {
+    setForm({ ...coupon });
+    setEditId(coupon.id);
+    setIsEditMode(true);
+    setShowModal(true);
+  };
 
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5>Coupons</h5>
-        <Button onClick={() => setShowModal(true)}>Add Coupon</Button>
+        <Button
+          onClick={() => {
+            resetForm();
+            setShowModal(true);
+          }}
+        >
+          Add Coupon
+        </Button>
       </div>
 
       <Table striped bordered hover responsive>
@@ -102,6 +126,14 @@ const handleDelete = async (id) => {
                 <td>
                   <Button
                     size="sm"
+                    variant="primary"
+                    className="me-2"
+                    onClick={() => handleEdit(c)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
                     variant="danger"
                     onClick={() => handleDelete(c.id)}
                   >
@@ -112,7 +144,9 @@ const handleDelete = async (id) => {
             ))
           ) : (
             <tr>
-              <td colSpan="7" className="text-center">No coupons found.</td>
+              <td colSpan="7" className="text-center">
+                No coupons found.
+              </td>
             </tr>
           )}
         </tbody>
@@ -120,7 +154,7 @@ const handleDelete = async (id) => {
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Add Coupon</Modal.Title>
+          <Modal.Title>{isEditMode ? 'Edit Coupon' : 'Add Coupon'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -146,8 +180,12 @@ const handleDelete = async (id) => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-          <Button onClick={handleSubmit}>Save</Button>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit}>
+            {isEditMode ? 'Update' : 'Save'}
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>
