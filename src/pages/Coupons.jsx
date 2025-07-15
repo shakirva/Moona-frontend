@@ -2,24 +2,28 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Modal, Button, Form, Table } from 'react-bootstrap';
 
-const baseUrl = 'http://localhost:5001'; // Backend URL
+const baseUrl = 'http://localhost:5001';
 
 const Coupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState(initialFormState());
 
-  const [form, setForm] = useState({
-    name: '',
-    description: '',
-    code: '',
-    min_order_value: '',
-    max_order_value: '',
-    offer_percentage: '',
-    expiry_date: '',
-  });
+  function initialFormState() {
+    return {
+      name: '',
+      description: '',
+      code: '',
+      min_order_value: '',
+      max_order_value: '',
+      offer_percentage: '',
+      expiry_date: '',
+    };
+  }
 
+  // Fetch all coupons
   const fetchCoupons = async () => {
     try {
       const res = await axios.get(`${baseUrl}/api/coupons`);
@@ -34,19 +38,12 @@ const Coupons = () => {
   }, []);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const resetForm = () => {
-    setForm({
-      name: '',
-      description: '',
-      code: '',
-      min_order_value: '',
-      max_order_value: '',
-      offer_percentage: '',
-      expiry_date: '',
-    });
+    setForm(initialFormState());
     setIsEditMode(false);
     setEditId(null);
   };
@@ -73,7 +70,7 @@ const Coupons = () => {
       if (res.data.success) {
         setCoupons((prev) => prev.filter((c) => c.id !== id));
       } else {
-        console.error('Delete failed:', res.data.message);
+        alert(res.data.message);
       }
     } catch (err) {
       console.error('Error deleting coupon:', err);
@@ -81,7 +78,7 @@ const Coupons = () => {
   };
 
   const handleEdit = (coupon) => {
-    setForm({ ...coupon });
+    setForm({ ...coupon, expiry_date: coupon.expiry_date.split('T')[0] });
     setEditId(coupon.id);
     setIsEditMode(true);
     setShowModal(true);
@@ -90,7 +87,7 @@ const Coupons = () => {
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5>Coupons</h5>
+        <h4>Coupons</h4>
         <Button
           onClick={() => {
             resetForm();
@@ -124,19 +121,10 @@ const Coupons = () => {
                 <td>{c.max_order_value}</td>
                 <td>{new Date(c.expiry_date).toLocaleDateString()}</td>
                 <td>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    className="me-2"
-                    onClick={() => handleEdit(c)}
-                  >
+                  <Button size="sm" variant="outline-primary" className="me-2" onClick={() => handleEdit(c)}>
                     Edit
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => handleDelete(c.id)}
-                  >
+                  <Button size="sm" variant="outline-danger" onClick={() => handleDelete(c.id)}>
                     Delete
                   </Button>
                 </td>
@@ -152,7 +140,7 @@ const Coupons = () => {
         </tbody>
       </Table>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>{isEditMode ? 'Edit Coupon' : 'Add Coupon'}</Modal.Title>
         </Modal.Header>
@@ -167,13 +155,14 @@ const Coupons = () => {
               { label: 'Offer %', name: 'offer_percentage', type: 'number' },
               { label: 'Expiry Date', name: 'expiry_date', type: 'date' },
             ].map(({ label, name, type = 'text' }) => (
-              <Form.Group className="mb-2" key={name}>
+              <Form.Group className="mb-3" key={name}>
                 <Form.Label>{label}</Form.Label>
                 <Form.Control
                   type={type}
                   name={name}
                   value={form[name]}
                   onChange={handleChange}
+                  required
                 />
               </Form.Group>
             ))}
@@ -183,7 +172,7 @@ const Coupons = () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
+          <Button variant="success" onClick={handleSubmit}>
             {isEditMode ? 'Update' : 'Save'}
           </Button>
         </Modal.Footer>
