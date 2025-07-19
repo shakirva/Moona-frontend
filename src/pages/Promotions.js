@@ -19,7 +19,7 @@ export default function Promotions() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!image || !title || !body) {
+    if ( !title || !body) {
       setError('All fields are required');
       return;
     }
@@ -34,7 +34,7 @@ export default function Promotions() {
     formData.append('body', body);
 
     try {
-      const { data } = await axios.post('/api/admin/send-promotion', formData, {
+      const { data } = await axios.post('http://localhost:5001/api/promotion/send-promotion', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -60,7 +60,7 @@ export default function Promotions() {
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
           <Form.Label>Promotion Image</Form.Label>
-          <Form.Control type="file" accept="image/*" onChange={handleImageChange} required />
+          <Form.Control type="file" accept="image/*" onChange={handleImageChange}  />
           {preview && <Image src={preview} thumbnail className="mt-2" width={200} />}
         </Form.Group>
 
