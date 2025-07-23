@@ -6,6 +6,7 @@ function Login({ onLogin }) {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate(); // ✅ initialize navigate
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -15,7 +16,7 @@ function Login({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5001/api/internal-users/login', form);
+const res = await axios.post(`${API_BASE_URL}/api/internal-users/login`, form);
       const { token, user } = res.data;
 
       // ✅ Save token and user info

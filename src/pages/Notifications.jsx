@@ -11,20 +11,24 @@ export default function Notifications() {
   const [error, setError] = useState('');
 
   const sendNotification = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setSuccess('');
-    setError('');
+  e.preventDefault();
+  setLoading(true);
+  setSuccess('');
+  setError('');
 
-    try {
-      const { data } = await axios.post('/api/admin/send-notification', { title, message });
-      setSuccess(`Sent to ${data.sent} users, ${data.failed} failed.`);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Error sending notification');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const { data } = await axios.post(
+      `${process.env.REACT_APP_API_URL}/api/admin/send-notification`,
+      { title, message }
+    );
+    setSuccess(`Sent to ${data.sent} users, ${data.failed} failed.`);
+  } catch (err) {
+    setError(err.response?.data?.error || 'Error sending notification');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Card className="p-4 shadow-sm">

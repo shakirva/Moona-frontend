@@ -29,14 +29,18 @@ export default function Promotions() {
     setError('');
 
     const formData = new FormData();
-    formData.append('image', image);
+    formData.append('file', image);
     formData.append('title', title);
     formData.append('body', body);
 
     try {
-      const { data } = await axios.post('http://localhost:5001/api/promotion/send-promotion', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+     const { data } = await axios.post(
+  `${process.env.REACT_APP_API_URL}/api/promotion/send-promotion`,
+  formData,
+  {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }
+);
 
       setSuccess(data.message || 'Promotion sent successfully!');
       setImage(null);

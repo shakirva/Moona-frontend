@@ -18,7 +18,7 @@ const InternalUsers = () => {
   // 🔄 Fetch users from backend
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:5001/api/internal-users/all');
+const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/internal-users/all`);
       setUsers(res.data);
     } catch (err) {
       console.error('Failed to fetch internal users', err);
@@ -40,11 +40,12 @@ const InternalUsers = () => {
   // ✅ Create or update user
   const handleCreateOrUpdate = async () => {
     try {
-      if (isEditMode) {
-        await axios.put(`http://localhost:5001/api/internal-users/update/${formData.id}`, formData);
-      } else {
-        await axios.post('http://localhost:5001/api/internal-users/create', formData);
-      }
+     if (isEditMode) {
+  await axios.put(`${process.env.REACT_APP_API_URL}/api/internal-users/update/${formData.id}`, formData);
+} else {
+  await axios.post(`${process.env.REACT_APP_API_URL}/api/internal-users/create`, formData);
+}
+
       setShowModal(false);
       resetForm();
       fetchUsers();
@@ -72,7 +73,8 @@ const InternalUsers = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      await axios.delete(`http://localhost:5001/api/internal-users/delete/${id}`);
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/internal-users/delete/${id}`);
+
       fetchUsers();
     } catch (err) {
       alert('Failed to delete user');

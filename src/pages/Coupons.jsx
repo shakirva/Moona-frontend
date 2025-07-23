@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Modal, Button, Form, Table } from 'react-bootstrap';
 
-const baseUrl = 'http://localhost:5001';
+const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const Coupons = () => {
   const [coupons, setCoupons] = useState([]);
