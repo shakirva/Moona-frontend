@@ -4,8 +4,9 @@ import {
   Table, Modal, Button, Spinner, Alert, Form, InputGroup, Row, Col, Pagination
 } from 'react-bootstrap';
 import axios from 'axios';
+import { API_BASE } from '../utils/helpers';
 
-const BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+const BASE = API_BASE;
 const ITEMS_PER_PAGE = 10;
 
 export default function CoinsHistory() {
@@ -44,7 +45,7 @@ export default function CoinsHistory() {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get(`${BASE}/api/shopify/orders`);
+  const res = await axios.get(`${BASE}/api/shopify/orders`);
       setOrders(res.data.orders);
     } catch (err) {
       console.error('Failed to load Shopify orders:', err);
@@ -60,10 +61,10 @@ export default function CoinsHistory() {
     setLoading(true);
 
     try {
-      const orderRes = await axios.get(`${BASE}/api/shopify/orders/${orderId}`);
+  const orderRes = await axios.get(`${BASE}/api/shopify/orders/${orderId}`);
       setSelectedOrder(orderRes.data.order);
 
-      const walletRes = await axios.get(`${BASE}/api/wallet/orders/${orderId}`);
+  const walletRes = await axios.get(`${BASE}/api/wallet/orders/${orderId}`);
       setWallet(walletRes.data.wallet);
     } catch (err) {
       console.error(err);
@@ -117,6 +118,7 @@ export default function CoinsHistory() {
           <tr>
             <th>Order ID</th>
             <th>Customer</th>
+            <th>Email</th>
             <th>Total</th>
             <th>Currency</th>
             <th>Created At</th>
@@ -132,6 +134,7 @@ export default function CoinsHistory() {
             >
               <td>{order.id}</td>
               <td>{order.customer?.first_name || ''} {order.customer?.last_name || ''}</td>
+              <td>{order.email || ''}</td>
               <td>{order.total_price}</td>
               <td>{order.currency}</td>
               <td>{new Date(order.created_at).toLocaleString()}</td>

@@ -38,18 +38,14 @@ function App() {
           <Route path="internal-users" element={<InternalUsers />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="promotions" element={<Promotions />} />
+          <Route path="banners" element={React.createElement(require('./pages/BannerManager.jsx').default)} />
           <Route index element={<Navigate to="/dashboard" />} />
           <Route path="/settings/points-rules" element={<PointsRules />} />
-<Route path="/settings/general" element={<GeneralSettings />} />
-<Route path="/settings/delivery-locations" element={<DeliveryLocations />} />
-<Route path="/coupons" element={<Coupons />} />
-<Route path="/orders" element={<Orders />} />
-<Route path="/admin/users/:shopifyId" element={<UserDetails />} />
-
-
-
-
-
+          <Route path="/settings/general" element={<GeneralSettings />} />
+          <Route path="/settings/delivery-locations" element={<DeliveryLocations />} />
+          <Route path="/coupons" element={<Coupons />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/admin/users/:shopifyId" element={<UserDetails />} />
         </Route>
 
         {/* Catch all */}

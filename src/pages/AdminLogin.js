@@ -19,9 +19,10 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 const res = await axios.post(`${API_BASE_URL}/api/internal-users/login`, form);
       const { token, user } = res.data;
 
-      // ✅ Save token and user info
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+
+  // ✅ Save token and user info (use 'adminToken' for consistency)
+  localStorage.setItem('adminToken', token);
+  localStorage.setItem('user', JSON.stringify(user));
 
       if (onLogin) onLogin(user);
 
@@ -36,7 +37,7 @@ const res = await axios.post(`${API_BASE_URL}/api/internal-users/login`, form);
   return (
     <div className="container d-flex align-items-center justify-content-center" style={{ height: '100vh' }}>
       <form className="card p-4 shadow-sm" onSubmit={handleSubmit} style={{ width: 400 }}>
-        <h4 className="mb-3 text-center">🔐 Admin Login</h4>
+        <h4 className="mb-3 text-center">🔐 Admin Loginn</h4>
         {error && <div className="alert alert-danger">{error}</div>}
         <div className="mb-3">
           <input

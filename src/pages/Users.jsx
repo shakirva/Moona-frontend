@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE } from '../utils/helpers';
 import {
   Table, Container, Spinner, Alert, Button,
   Form, Row, Col, Pagination, Modal
 } from 'react-bootstrap';
+
+
+
 
 const User = () => {
   const [users, setUsers] = useState([]);
@@ -24,16 +28,16 @@ const User = () => {
   }, [searchTerm, coinFilter, currentPage]);
 
   const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/user`, {
-        params: {
-          search: searchTerm,
-          filter: coinFilter,
-          page: currentPage,
-          limit: usersPerPage,
-        },
-      });
+   try {
+  setLoading(true);
+  const res = await axios.get(`${API_BASE}/api/user`, {
+    params: {
+      search: searchTerm,
+      filter: coinFilter,
+      page: currentPage,
+      limit: usersPerPage,
+    },
+  });
 
       setUsers(res.data.users);
       setTotalPages(res.data.pagination.totalPages || 1);
@@ -86,7 +90,7 @@ const User = () => {
           >
             <option value="all">All Coins</option>
             <option value="zero">0 Coins</option>
-            <option value="positive">> 0 Coins</option>
+            <option value="positive">&gt; 0 Coins</option>
           </Form.Select>
         </Col>
       </Row>

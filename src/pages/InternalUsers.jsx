@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE } from '../utils/helpers';
 import { Modal, Button, Form, Table } from 'react-bootstrap';
 
 const InternalUsers = () => {
@@ -18,7 +19,7 @@ const InternalUsers = () => {
   // 🔄 Fetch users from backend
   const fetchUsers = async () => {
     try {
-const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/internal-users/all`);
+const res = await axios.get(`${API_BASE}/api/internal-users/all`);
       setUsers(res.data);
     } catch (err) {
       console.error('Failed to fetch internal users', err);
@@ -41,9 +42,9 @@ const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/internal-users
   const handleCreateOrUpdate = async () => {
     try {
      if (isEditMode) {
-  await axios.put(`${process.env.REACT_APP_API_URL}/api/internal-users/update/${formData.id}`, formData);
+  await axios.put(`${API_BASE}/api/internal-users/update/${formData.id}`, formData);
 } else {
-  await axios.post(`${process.env.REACT_APP_API_URL}/api/internal-users/create`, formData);
+  await axios.post(`${API_BASE}/api/internal-users/create`, formData);
 }
 
       setShowModal(false);
@@ -73,7 +74,7 @@ const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/internal-users
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/internal-users/delete/${id}`);
+  await axios.delete(`${API_BASE}/api/internal-users/delete/${id}`);
 
       fetchUsers();
     } catch (err) {

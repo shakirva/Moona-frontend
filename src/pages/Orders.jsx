@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../utils/helpers';
 import { Alert, Button, Col, Container, Form, Row, Spinner, Table } from 'react-bootstrap';
 import { capitalizeFirstLetter } from '../utils/helpers';
 
@@ -16,25 +17,44 @@ const Orders = () => {
     fulfillment_status: ''
   });
 
-  const fetchOrders = async (direction) => {
+  const fetchOrders = async (direction, triedFallback = false) => {
     try {
       setLoading(true);
       if (direction) {
         setPageInfo(prev => ({ ...prev, current_type: direction }));
       }
 
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders`, {
-        params: { limit: 10, pageInfo, searchParams }
-      });
+      // Primary: use live-stable Shopify proxy endpoint
+      const paramsShopify = { limit: 10 };
+      if (searchParams?.financial_status) paramsShopify.status = searchParams.financial_status;
+      if (searchParams?.name) paramsShopify.search = searchParams.name;
+      // Note: this endpoint doesn't support fulfillment_status/email filters directly
+      const res = await axios.get(`${API_BASE}/api/shopify/orders`, { params: paramsShopify });
 
       setOrders(res.data.orders || []);
-      setPageInfo(prev => ({
-        ...prev,
-        prev_link: res.data.prev_link || '',
-        next_link: res.data.next_link || ''
-      }));
+      // Disable cursor buttons because /api/shopify/orders doesn't return Link headers
+      setPageInfo(prev => ({ ...prev, prev_link: '', next_link: '' }));
     } catch (err) {
       console.error('Error fetching orders:', err);
+      // Fallback to legacy /api/orders if Shopify proxy fails (e.g., local dev)
+      if (!triedFallback) {
+        try {
+          const simple = { limit: 10 };
+          if (searchParams?.order_id) simple.order_id = searchParams.order_id;
+          if (searchParams?.name) simple.name = searchParams.name;
+          if (searchParams?.email) simple.email = searchParams.email;
+          if (searchParams?.financial_status) simple.financial_status = searchParams.financial_status;
+          if (searchParams?.fulfillment_status) simple.fulfillment_status = searchParams.fulfillment_status;
+
+          const res2 = await axios.get(`${API_BASE}/api/orders`, { params: simple });
+          setOrders(res2.data.orders || []);
+          setPageInfo(prev => ({ ...prev, prev_link: res2.data.prev_link || '', next_link: res2.data.next_link || '' }));
+          setError('');
+          return; // success via fallback
+        } catch (e2) {
+          console.error('Fallback orders fetch failed:', e2);
+        }
+      }
       setError('Failed to load orders.');
     } finally {
       setLoading(false);

@@ -17,11 +17,12 @@ export default function Sidebar() {
   const navItems = [
     { to: '/', label: 'Dashboard', icon: <FaTachometerAlt /> },
     { to: '/users', label: 'Users', icon: <FaUsers /> },
-    { to: '/orders', label: 'Orders', icon: <FaCubes /> }, // ✅ Added Orders here
+    { to: '/orders', label: 'Orders', icon: <FaCubes /> },
     { to: '/coins-history', label: 'Points History', icon: <FaCoins /> },
     { to: '/internal-users', label: 'Internal Users', icon: <FaUserShield /> },
     { to: '/promotions', label: 'Promotions', icon: <FaBullhorn /> },
-    { to: '/coupons', label: 'Coupons', icon: <FaGift /> }, // ✅ Added Coupons here
+    { to: '/coupons', label: 'Coupons', icon: <FaGift /> },
+    { to: '/banners', label: 'Banner Images', icon: <FaBullhorn /> }, // Banner Images for mobile app
   ];
 
   return (
