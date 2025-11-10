@@ -83,7 +83,14 @@ function BannerManager() {
         {banners.map(banner => (
           <div className="col-md-4 mb-3" key={banner.id}>
             <div className="card">
-              <img src={`${API_BASE_URL}${banner.image_url}`} alt="Banner" className="card-img-top" style={{height:200,objectFit:'cover'}} />
+              {/* Use the URL returned by API directly if it's already absolute; otherwise prefix with API base */}
+              <img
+                src={banner.image_url?.startsWith('http') ? banner.image_url : `${API_BASE_URL}${banner.image_url}`}
+                alt="Banner"
+                className="card-img-top"
+                style={{ height: 200, objectFit: 'cover' }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
               <div className="card-body text-center">
                 <button className="btn btn-danger btn-sm" onClick={() => handleDelete(banner.id)} disabled={loading}>Delete</button>
               </div>

@@ -61,11 +61,20 @@ export default function CoinsHistory() {
     setLoading(true);
 
     try {
-  const orderRes = await axios.get(`${BASE}/api/shopify/orders/${orderId}`);
+      // Fetch Shopify order details
+      const orderRes = await axios.get(`${BASE}/api/shopify/orders/${orderId}`);
       setSelectedOrder(orderRes.data.order);
-
-  const walletRes = await axios.get(`${BASE}/api/wallet/orders/${orderId}`);
-      setWallet(walletRes.data.wallet);
+      // Fetch wallet/coin transaction linked to this order. If 404 treat as no wallet record.
+      try {
+        const walletRes = await axios.get(`${BASE}/api/wallet/orders/${orderId}`);
+        setWallet(walletRes.data.wallet);
+      } catch (wErr) {
+        if (wErr.response && wErr.response.status === 404) {
+          setWallet(null);
+        } else {
+          console.warn('Wallet fetch error:', wErr.message);
+        }
+      }
     } catch (err) {
       console.error(err);
       setError('Failed to load order details.');
@@ -168,7 +177,7 @@ export default function CoinsHistory() {
           ) : selectedOrder ? (
             <>
               <h6>🛍️ Shopify Order</h6>
-              <table class="table table-borderless">
+              <table className="table table-borderless">
                 <tr>
                   <td><strong>Order ID:</strong></td>
                   <td>{selectedOrder.id}</td>

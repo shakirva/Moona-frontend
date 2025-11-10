@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { API_BASE } from '../utils/helpers';
 import { Alert, Button, Col, Container, Form, Row, Spinner, Table } from 'react-bootstrap';
 import { capitalizeFirstLetter } from '../utils/helpers';
@@ -17,7 +17,7 @@ const Orders = () => {
     fulfillment_status: ''
   });
 
-  const fetchOrders = async (direction, triedFallback = false) => {
+  const fetchOrders = useCallback(async (direction, triedFallback = false) => {
     try {
       setLoading(true);
       if (direction) {
@@ -59,11 +59,11 @@ const Orders = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   const handleSearchChange = (e) => {
     setSearchParams(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -138,19 +138,41 @@ const Orders = () => {
                 <th>Total Price</th>
                 <th>Payment Status</th>
                 <th>Ship Status</th>
-                <th>Track</th>
+                {/* <th>Track</th> */}
                 <th>Created</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order, index) => {
-                const fulfillment = order.fulfillments?.[0];
-                const trackingUrl = fulfillment?.tracking_url || fulfillment?.tracking_urls?.[0];
-                const shipmentStatusRaw = order.fulfillments?.length > 0
-                  ? fulfillment?.shipment_status
-                  : 'Not Shipped';
+                // Prefer the most recent fulfillment (Shopify may keep multiple)
+                const fulfillments = Array.isArray(order.fulfillments) ? order.fulfillments : [];
+                const latestFulfillment = fulfillments.length > 0
+                  ? [...fulfillments].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0]
+                  : undefined;
 
-                const shipmentStatus = capitalizeFirstLetter(shipmentStatusRaw || 'Not Shipped');
+                // Tracking URL or first from list
+                let trackingUrl = latestFulfillment?.tracking_url || latestFulfillment?.tracking_urls?.[0] || '';
+                if (!trackingUrl && latestFulfillment?.tracking_number) {
+                  // Fallback to a universal tracker if Shopify didn't provide a URL
+                  trackingUrl = `https://www.17track.net/en?nums=${encodeURIComponent(latestFulfillment.tracking_number)}`;
+                }
+
+                // Derive a human friendly shipping status with good fallbacks
+                let shipmentStatusRaw = '';
+                if (order?.fulfillment_status === 'fulfilled') {
+                  shipmentStatusRaw = 'delivered'; // Treat fully fulfilled as delivered/shipped
+                } else if (order?.fulfillment_status === 'partial') {
+                  shipmentStatusRaw = 'in_progress';
+                } else if (latestFulfillment?.shipment_status) {
+                  shipmentStatusRaw = latestFulfillment.shipment_status; // confirmed | in_transit | out_for_delivery | delivered | failure | unknown | voided
+                } else if (fulfillments.length > 0) {
+                  // Fulfillment exists but no courier updates yet
+                  shipmentStatusRaw = 'in progress';
+                } else {
+                  shipmentStatusRaw = 'not shipped';
+                }
+
+                const shipmentStatus = capitalizeFirstLetter(shipmentStatusRaw || 'Not shipped');
                 const shipmentClass = getShipmentBadgeClass(shipmentStatusRaw);
 
                 return (
@@ -170,7 +192,7 @@ const Orders = () => {
                         {shipmentStatus}
                       </span>
                     </td>
-                    <td>
+                    {/* <td>
                       {trackingUrl ? (
                         <Button
                           variant="outline-primary"
@@ -180,7 +202,7 @@ const Orders = () => {
                           Track
                         </Button>
                       ) : '—'}
-                    </td>
+                    </td> */}
                     <td>{new Date(order.created_at).toLocaleString()}</td>
                   </tr>
                 );

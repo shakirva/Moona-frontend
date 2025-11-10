@@ -15,7 +15,7 @@ const User = () => {
   const [error, setError] = useState('');
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [coinFilter, setCoinFilter] = useState('all');
+  const [coinFilter, setCoinFilter] = useState('all'); // filters on points now
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const usersPerPage = 10;
@@ -24,6 +24,7 @@ const User = () => {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchUsers();
   }, [searchTerm, coinFilter, currentPage]);
 
@@ -88,9 +89,9 @@ const User = () => {
               setCurrentPage(1);
             }}
           >
-            <option value="all">All Coins</option>
-            <option value="zero">0 Coins</option>
-            <option value="positive">&gt; 0 Coins</option>
+            <option value="all">All Points</option>
+            <option value="zero">0 Points</option>
+            <option value="positive">&gt; 0 Points</option>
           </Form.Select>
         </Col>
       </Row>
@@ -111,12 +112,12 @@ const User = () => {
                   <th>Shopify ID</th>
                   <th>Name</th>
                   <th>Email</th>
-                  <th>Coins</th>
+                  {/* <th>Points</th>
                   <th>Total Spent</th>
-                  <th>Orders</th>
+                  <th>Orders</th> */}
                   <th>Created At</th>
                   <th>Address</th>
-                  <th>Action</th>
+                  {/* <th>Action</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -127,9 +128,9 @@ const User = () => {
                       <td>{user.shopify_id}</td>
                       <td>{user.name}</td>
                       <td>{user.email}</td>
-                      <td>{user.coins}</td>
+                      {/* <td>{user.points}</td>
                       <td>QAR {parseFloat(user.shopify_total_spent).toFixed(2)}</td>
-                      <td>{user.shopify_orders_count}</td>
+                      <td>{user.shopify_orders_count}</td> */}
                       <td>
                         {user.shopify_created_at
                           ? new Date(user.shopify_created_at).toLocaleDateString()
@@ -140,15 +141,15 @@ const User = () => {
                           .filter(Boolean)
                           .join(', ')}
                       </td>
-                      <td>
+                      {/* <td>
                         <Button
                           variant="primary"
                           size="sm"
-                          href={`/admin/users/${user.shopify_id}`}
+                          onClick={() => handleViewUser(user)}
                         >
                           View
                         </Button>
-                      </td>
+                      </td> */}
                     </tr>
                   ))
                 ) : (
@@ -190,7 +191,7 @@ const User = () => {
               <p><strong>Shopify ID:</strong> {selectedUser.shopify_id}</p>
               <p><strong>Name:</strong> {selectedUser.name}</p>
               <p><strong>Email:</strong> {selectedUser.email}</p>
-              <p><strong>Coins:</strong> {selectedUser.coins}</p>
+              <p><strong>Points:</strong> {selectedUser.points}</p>
               <p><strong>Total Spent:</strong> QAR {parseFloat(selectedUser.shopify_total_spent).toFixed(2)}</p>
               <p><strong>Orders:</strong> {selectedUser.shopify_orders_count}</p>
               <p><strong>Created At:</strong> {selectedUser.shopify_created_at ? new Date(selectedUser.shopify_created_at).toLocaleDateString() : ''}</p>
